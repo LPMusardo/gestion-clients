@@ -1,3 +1,8 @@
+# Projet
+- Angualr 17 sans stand alone components
+- Minimalistic State Management using BehaviorSubjet (caching)
+- Test Unitaires
+
 # GestionClients
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.3.
