@@ -9,12 +9,12 @@ const routes: Routes = [
   { path: '', component: CustomersPageComponent, pathMatch: 'full' },
   { path: 'create', component: CreateCustomerPageComponent, pathMatch: 'full' },
   {
-    path: ':id/invoices/create',
+    path: ':id/invoices/add',
     component: CreateInvoicePageComponent,
     pathMatch: 'full',
   },
   { path: ':id', component: CustomerDetailsPageComponent, pathMatch: 'full' },
-  { path: '**', redirectTo: '/home', pathMatch: 'full' },
+  { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
 
 @NgModule({

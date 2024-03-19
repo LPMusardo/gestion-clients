@@ -1,44 +1,92 @@
 import { Component, OnInit } from '@angular/core';
-import CustomerService from '../../api/customers.service';
-import { Observable } from 'rxjs';
+import CustomerService from '../../services/api/customers.service';
+import { Observable, filter, map, startWith, switchMap } from 'rxjs';
 import { Customers } from '../../types/customers';
+import { Router } from '@angular/router';
+import { Form, FormControl, FormGroup } from '@angular/forms';
+import SearchService from '../../services/search/search.service';
 
 @Component({
   selector: 'app-clients-page',
   template: `
-    <div>
-      <h1>Liste des clients</h1>
-      <button>Créer un client</button>
+    <div class="container">
+      <div *ngIf="(status$ | async) === 'DONE'">
+        <header>
+          <h1>Liste des clients</h1>
+        </header>
+        <div class="actions">
+          <button mat-raised-button (click)="handleCreateCustomer()">
+            Créer un client
+          </button>
 
-      <mat-progress-spinner
-        *ngIf="(status$ | async) === 'LOADING'"
-        mode="indeterminate"
-      ></mat-progress-spinner>
+          <form [formGroup]="searchForm">
+            <mat-form-field class="input">
+              <mat-label>Chercher un client</mat-label>
+              <input
+                matInput
+                formControlName="search"
+                type="text"
+                name="search"
+                placeholder="search..."
+              />
+              <mat-icon matPrefix>search</mat-icon>
+            </mat-form-field>
+          </form>
+        </div>
+        <app-users-table [dataSource]="filteredCustomers$"></app-users-table>
+      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Nom complet</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let customer of customers$ | async">
-            <td>{{ customer.fullname }}</td>
-            <td>{{ customer.email }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <app-custom-spinner [status]="status$"></app-custom-spinner>
+
+      <p *ngIf="(status$ | async) === 'ERROR'">Il y a eu une erreur</p>
     </div>
   `,
+  styles: [
+    `
+      button {
+        height: 55px;
+        margin-right: 10px;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .container {
+        margin: 40px 40px;
+      }
+      .actions {
+        display: flex;
+        margin: 16px 8px;
+      }
+    `,
+  ],
 })
-export class CustomersPageComponent implements OnInit {
-  public customers$: Observable<Customers>;
-  public status$: Observable<string>;
+export class CustomersPageComponent {
+  allCustomers$: Observable<Customers>;
+  filteredCustomers$: Observable<Customers>;
+  status$: Observable<string>;
+  searchForm: FormGroup;
+  search$: Observable<string>;
 
-  constructor(private customerService: CustomerService) {
-    ({ customers$: this.customers$, status$: this.status$ } =
-      this.customerService.getCustomersWithSatus());
+  constructor(
+    private customerService: CustomerService,
+    private router: Router,
+    private searchService: SearchService
+  ) {
+    this.searchForm = new FormGroup({
+      search: new FormControl(''),
+    });
+    this.status$ = this.customerService.getStatus();
+    this.allCustomers$ = this.customerService.getCustomers();
+    this.search$ = this.searchForm.get('search')!.valueChanges;
+    this.filteredCustomers$ = searchService.filteredObservable(
+      this.allCustomers$,
+      this.search$,
+      'fullname'
+    );
   }
-  ngOnInit(): void {}
+
+  handleCreateCustomer() {
+    this.router.navigate(['/create']);
+  }
 }
