@@ -2,10 +2,11 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
-import { Invoice, Invoices } from '../../types/invoice';
-import { INVOICES_URL, SUPABASE_API_KEY } from './api';
+import { BehaviorSubject, Observable, catchError, tap } from 'rxjs';
 import { FormInvoice } from '../../types/formInvoice';
+import { Invoice, Invoices } from '../../types/invoice';
+import { ServiceStatus } from '../../types/serviceStatus';
+import { INVOICES_URL, SUPABASE_API_KEY } from './api';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,7 @@ import { FormInvoice } from '../../types/formInvoice';
 export class InvoiceService {
   constructor(private http: HttpClient) {
     this.invoices$ = new BehaviorSubject<Invoices>([]);
-    this.status$ = new BehaviorSubject<string>('DONE');
+    this.status$ = new BehaviorSubject<string>(ServiceStatus.DONE);
     console.log('CustomerService created');
   }
 
@@ -21,10 +22,10 @@ export class InvoiceService {
   private status$: BehaviorSubject<string>;
   private customerInvoicesOwnerId: number = -1;
 
-  reloadInvoices(customerId: number): void {
+  private reloadInvoices(customerId: number): Observable<Invoices> {
     this.customerInvoicesOwnerId = customerId;
-    this.status$.next('LOADING');
-    this.http
+    this.status$.next(ServiceStatus.LOADING);
+    return this.http
       .get<Invoices>(INVOICES_URL, {
         params: {
           client_id: `eq.${customerId}`,
@@ -35,33 +36,36 @@ export class InvoiceService {
         },
       })
       .pipe(
-        tap(() => {
-          this.status$.next('DONE');
-        }),
         catchError((error) => {
-          console.error(
-            `Error loading invoices of customer: ${customerId}`,
-            error
-          );
-          this.status$.next('ERROR');
-          return of([]);
+          this.status$.next(ServiceStatus.ERROR);
+          throw error;
+        }),
+        tap(() => {
+          this.status$.next(ServiceStatus.DONE);
+        }),
+        tap((invoices) => {
+          this.invoices$.next(invoices);
         })
-      )
-      .subscribe((invoices) => {
-        this.invoices$.next(invoices);
-      });
+      );
   }
 
   getInvoices(customerId: number): Observable<Invoices> {
+    // if (this.customerInvoicesOwnerId !== customerId) {
+    //   return this.reloadInvoices(customerId).pipe(
+    //     switchMap(()=> this.invoices$.asObservable())
+    //   )
+    // }
+    // return this.invoices$.asObservable();
+
     if (this.customerInvoicesOwnerId !== customerId) {
-      this.reloadInvoices(customerId);
+      this.reloadInvoices(customerId).subscribe();
     }
     return this.invoices$.asObservable();
   }
 
-  addInvoice(newInvoice: FormInvoice) {
+  addInvoice(newInvoice: FormInvoice): Observable<Invoice> {
     console.log('New invoice', newInvoice);
-    this.status$.next('LOADING');
+    this.status$.next(ServiceStatus.LOADING);
     return this.http
       .post<Invoice>(INVOICES_URL, newInvoice, {
         headers: {
@@ -71,18 +75,20 @@ export class InvoiceService {
         },
       })
       .pipe(
-        tap(() => {
-          this.status$.next('DONE');
-        }),
         catchError((error) => {
-          console.error('Error adding new Invoice', error);
-          this.status$.next('ERROR');
-          return of({} as Invoice);
+          this.status$.next(ServiceStatus.ERROR);
+          throw error;
+        }),
+        tap(() => {
+          this.status$.next(ServiceStatus.DONE);
+        }),
+        tap(() => {
+          this.reloadInvoices(newInvoice.client_id).subscribe({
+            error: (error) =>
+              console.error('Error while loading all invoices', error),
+          });
         })
-      )
-      .subscribe(() => {
-        this.reloadInvoices(newInvoice.client_id);
-      });
+      );
   }
 
   getStatus(): Observable<string> {

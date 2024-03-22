@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import CustomerService from '../../services/api/customers.service';
-import { Observable, filter, map, startWith, switchMap } from 'rxjs';
-import { Customers } from '../../types/customers';
+import { Component } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Form, FormControl, FormGroup } from '@angular/forms';
+import { Observable } from 'rxjs';
+import CustomerService from '../../services/api/customers.service';
 import SearchService from '../../services/search/search.service';
+import { Customers } from '../../types/customers';
+import { ServiceStatus } from '../../types/serviceStatus';
 
 @Component({
   selector: 'app-clients-page',
   template: `
     <div class="container">
-      <div *ngIf="(status$ | async) === 'DONE'">
+      <div *ngIf="(status$ | async) === serviceStatus.DONE">
         <header>
           <h1>Liste des clients</h1>
         </header>
@@ -38,7 +39,9 @@ import SearchService from '../../services/search/search.service';
 
       <app-custom-spinner [status]="status$"></app-custom-spinner>
 
-      <p *ngIf="(status$ | async) === 'ERROR'">Il y a eu une erreur</p>
+      <p *ngIf="(status$ | async) === serviceStatus.ERROR">
+        Il y a eu une erreur
+      </p>
     </div>
   `,
   styles: [
@@ -62,6 +65,7 @@ import SearchService from '../../services/search/search.service';
   ],
 })
 export class CustomersPageComponent {
+  serviceStatus = ServiceStatus;
   allCustomers$: Observable<Customers>;
   filteredCustomers$: Observable<Customers>;
   status$: Observable<string>;

@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import CustomerService from '../../services/api/customers.service';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { Form, FormControl, FormGroup, Validators } from '@angular/forms';
+import CustomerService from '../../services/api/customers.service';
 import { FormCustomer } from '../../types/formCustomer';
 
 @Component({
@@ -21,10 +22,12 @@ import { FormCustomer } from '../../types/formCustomer';
               matInput
               placeholder="Prénom Nom"
               formControlName="fullname"
-              name="fullname"
+              name="fullName"
             />
             <mat-icon matPrefix>sentiment_very_satisfied</mat-icon>
-            <!-- <mat-error>{{ getErrorMessage() }}</mat-error> -->
+            <mat-error *ngIf="this.form.get('fullname')?.invalid">
+              "Veuillez remplir le nom complet correctement"
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field class="input">
@@ -36,12 +39,16 @@ import { FormCustomer } from '../../types/formCustomer';
               name="email"
             />
             <mat-icon matPrefix>email</mat-icon>
-            <!-- <mat-error>{{ getErrorMessage() }}</mat-error> -->
+            <mat-error *ngIf="this.form.get('email')?.invalid">
+              "Veuillez remplir l'email correctement"
+            </mat-error>
           </mat-form-field>
         </form>
       </mat-card-content>
       <mat-card-actions>
-        <button (click)="onSubmit()" mat-raised-button color="primary">Enregistrer</button>
+        <button (click)="onSubmit()" mat-raised-button color="primary">
+          Enregistrer
+        </button>
       </mat-card-actions>
     </mat-card>
   </div>`,
@@ -63,11 +70,15 @@ import { FormCustomer } from '../../types/formCustomer';
 export class CreateCustomerPageComponent {
   constructor(
     private customerService: CustomerService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   form = new FormGroup({
-    fullname: new FormControl('', [Validators.required]),
+    fullname: new FormControl('', [
+      Validators.required,
+      Validators.minLength(3),
+    ]),
     email: new FormControl('', [Validators.required, Validators.email]),
   });
 
@@ -78,11 +89,28 @@ export class CreateCustomerPageComponent {
       return;
     }
     const newCustomer = this.form.value as FormCustomer;
-    this.customerService.addCustomer(newCustomer);
-    this.form.setValue({
-      fullname: '',
-      email: '',
+    this.customerService.addCustomer(newCustomer).subscribe({
+      next: (customer) => {
+        console.log('Customer added sucessfully ', customer);
+        this.form.setValue({
+          fullname: '',
+          email: '',
+        });
+        this.router.navigate(['']);
+      },
+      error: (error) => {
+        console.error('Error while adding customer', error);
+        this.openSnackBar(error.message);
+      },
     });
-    this.router.navigate(['']);
+  }
+
+  openSnackBar(message: string) {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5_000,
+      panelClass: ['snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+    });
   }
 }

@@ -1,12 +1,13 @@
 import { Component, Input } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { ServiceStatus } from '../../types/serviceStatus';
 
 @Component({
   selector: 'app-custom-spinner',
   template: `
     <mat-progress-spinner
       class="center"
-      *ngIf="(status | async) === 'LOADING'"
+      *ngIf="(status | async) === serviceStatus.LOADING"
       mode="indeterminate"
     >
     </mat-progress-spinner>
@@ -23,7 +24,8 @@ import { Observable, of } from 'rxjs';
   ],
 })
 export class CustomSpinnerComponent {
+  serviceStatus = ServiceStatus;
 
   @Input()
-  status: Observable<string> = of('DONE');
+  status: Observable<string> = of(ServiceStatus.DONE);
 }

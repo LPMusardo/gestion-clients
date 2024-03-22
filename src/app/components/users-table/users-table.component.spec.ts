@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { of } from 'rxjs';
+import { AppModule } from '../../app.module';
 import { UsersTableComponent } from './users-table.component';
 
 describe('UsersTableComponent', () => {
@@ -8,12 +10,14 @@ describe('UsersTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UsersTableComponent]
-    })
-    .compileComponents();
-    
+      declarations: [UsersTableComponent],
+      imports: [AppModule],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(UsersTableComponent);
     component = fixture.componentInstance;
+    component.dataSource = of([]);
+
     fixture.detectChanges();
   });
 

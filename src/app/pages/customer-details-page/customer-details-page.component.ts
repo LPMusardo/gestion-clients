@@ -1,17 +1,21 @@
 import { Component } from '@angular/core';
-import CustomerService from '../../services/api/customers.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, first } from 'rxjs';
-import { Customer } from '../../types/customers';
+import { Observable, combineLatest, first, map } from 'rxjs';
+import CustomerService from '../../services/api/customers.service';
 import { InvoiceService } from '../../services/api/invoices.service';
-import { Invoice, Invoices } from '../../types/invoice';
+import { Customer } from '../../types/customers';
+import { Invoices } from '../../types/invoice';
+import { ServiceStatus } from '../../types/serviceStatus';
 
 @Component({
   selector: 'app-client-details-page',
   template: `
     <div class="container">
       <ng-container
-        *ngIf="(status$ | async) === 'DONE' && (customer$ | async) as customer"
+        *ngIf="
+          (status$ | async) === serviceStatus.DONE &&
+          (customer$ | async) as customer
+        "
       >
         <header>
           <h1>{{ customer.fullname }}</h1>
@@ -31,7 +35,9 @@ import { Invoice, Invoices } from '../../types/invoice';
 
       <app-custom-spinner [status]="status$"></app-custom-spinner>
 
-      <div *ngIf="(status$ | async) === 'ERROR'">Il y a eu une erreur</div>
+      <div *ngIf="(status$ | async) === serviceStatus.ERROR">
+        Il y a eu une erreur
+      </div>
     </div>
   `,
   styles: [
@@ -56,9 +62,11 @@ import { Invoice, Invoices } from '../../types/invoice';
   ],
 })
 export class CustomerDetailsPageComponent {
-  public customer$: Observable<Customer | undefined>;
-  public invoices$: Observable<Invoices>;
-  public status$: Observable<string>;
+  serviceStatus = ServiceStatus;
+
+  customer$: Observable<Customer | undefined>;
+  invoices$: Observable<Invoices>;
+  status$: Observable<string>;
 
   constructor(
     private invvoiceService: InvoiceService,
@@ -70,7 +78,18 @@ export class CustomerDetailsPageComponent {
     console.log('The page show the customer ', customerId);
     this.customer$ = this.customerService.getOneCustomer(customerId);
     this.invoices$ = this.invvoiceService.getInvoices(customerId);
-    this.status$ = this.invvoiceService.getStatus();
+    this.status$ = combineLatest([
+      this.customerService.getStatus(),
+      this.invvoiceService.getStatus(),
+    ]).pipe(
+      map(([s1, s2]) => {
+        if (s1 === ServiceStatus.LOADING || s2 === ServiceStatus.LOADING)
+          return ServiceStatus.LOADING;
+        if (s1 === ServiceStatus.ERROR || s2 === ServiceStatus.ERROR)
+          return ServiceStatus.ERROR;
+        return ServiceStatus.DONE;
+      })
+    );
   }
 
   ngOnInit(): void {}

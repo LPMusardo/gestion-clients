@@ -1,9 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CustomerDetailsPageComponent } from './customer-details-page.component';
-import CustomerService from '../../services/api/customers.service';
-import { HttpClient } from '@angular/common/http';
-import { InvoiceService } from '../../services/api/invoices.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   mockActivatedRoute,
@@ -11,6 +7,10 @@ import {
   mockInvoiceService,
   mockRouter,
 } from '../../../test/mock';
+import { AppModule } from '../../app.module';
+import CustomerService from '../../services/api/customers.service';
+import { InvoiceService } from '../../services/api/invoices.service';
+import { CustomerDetailsPageComponent } from './customer-details-page.component';
 
 describe('CustomerDetailsPageComponent', () => {
   let component: CustomerDetailsPageComponent;
@@ -25,6 +25,7 @@ describe('CustomerDetailsPageComponent', () => {
         { provide: Router, useValue: mockRouter },
       ],
       declarations: [CustomerDetailsPageComponent],
+      imports: [AppModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CustomerDetailsPageComponent);

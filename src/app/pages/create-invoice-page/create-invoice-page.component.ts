@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import { FormInvoice } from '../../types/formInvoice';
-import { InvoiceService } from '../../services/api/invoices.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
+import { InvoiceService } from '../../services/api/invoices.service';
+import { InvoiceStatus } from '../../types/invoiceStatus';
 
 @Component({
   selector: 'app-create-invoice-page',
@@ -18,10 +19,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
           <form (ngSubmit)="onSubmit()" [formGroup]="form">
             <mat-form-field class="input">
               <mat-label>Satut</mat-label>
-              <mat-select formControlName="status" name="status">
-                <mat-option value="SENT">SENT</mat-option>
-                <mat-option value="PAID">PAID</mat-option>
-              </mat-select>
+              <select matNativeControl formControlName="status" name="status">
+                <option [value]="invoiceStatus.SENT">Envoyé</option>
+                <option [value]="invoiceStatus.PAID">Payé</option>
+              </select>
             </mat-form-field>
 
             <mat-form-field class="input">
@@ -33,7 +34,9 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
                 name="amount"
                 placeholder="Montant de la facture..."
               />
-              <!-- <mat-error>{{ getErrorMessage() }}</mat-error> -->
+              <mat-error *ngIf="this.form.get('amount')?.invalid">
+                "Veuillez remplir le montant correctement"
+              </mat-error>
             </mat-form-field>
           </form>
         </mat-card-content>
@@ -61,19 +64,26 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
   ],
 })
 export class CreateInvoicePageComponent {
+  invoiceStatus = InvoiceStatus;
   customerId: number;
+  errorMessage = '';
 
   constructor(
     private invoiceService: InvoiceService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.customerId = Number(this.route.snapshot.paramMap.get('id'));
   }
 
   form = new FormGroup({
-    amount: new FormControl('', [Validators.required, Validators.min(0)]),
-    status: new FormControl('SENT', [Validators.required]),
+    amount: new FormControl('', [
+      Validators.required,
+      Validators.min(0),
+      Validators.pattern('^[0-9]*$'),
+    ]),
+    status: new FormControl(InvoiceStatus.SENT, [Validators.required]),
   });
 
   onSubmit() {
@@ -85,9 +95,26 @@ export class CreateInvoicePageComponent {
     const newInvoice = {
       amount: Number(this.form.value.amount),
       client_id: this.customerId,
-      status: 'SENT',
+      status: this.form.value.status!,
     };
-    this.invoiceService.addInvoice(newInvoice);
-    this.router.navigate([this.customerId]);
+    this.invoiceService.addInvoice(newInvoice).subscribe({
+      next: (invoice) => {
+        console.log('invoice added sucessfully ', invoice);
+        this.router.navigate([this.customerId]);
+      },
+      error: (error) => {
+        console.error('Error while adding invoice', error);
+        this.openSnackBar(error.message);
+      },
+    });
+  }
+
+  openSnackBar(message: string) {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5_000,
+      panelClass: ['snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+    });
   }
 }

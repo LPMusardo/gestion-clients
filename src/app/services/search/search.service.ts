@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
 import {
   Observable,
-  debounce,
   debounceTime,
   distinctUntilChanged,
   map,
   startWith,
   switchMap,
 } from 'rxjs';
-import { Customer, Customers } from '../../types/customers';
 
 @Injectable({
   providedIn: 'root',

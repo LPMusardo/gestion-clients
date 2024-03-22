@@ -1,20 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CustomersPageComponent } from './customers-page.component';
-import { HttpClientModule } from '@angular/common/http';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { BrowserModule } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  mockActivatedRoute,
   mockCustomerService,
   mockInvoiceService,
-  mockActivatedRoute,
   mockRouter,
 } from '../../../test/mock';
+import { AppModule } from '../../app.module';
 import CustomerService from '../../services/api/customers.service';
 import { InvoiceService } from '../../services/api/invoices.service';
-import { AppRoutingModule } from '../../app-routing.module';
+import { CustomersPageComponent } from './customers-page.component';
 
 describe('CustomersPageComponent', () => {
   let component: CustomersPageComponent;
@@ -28,13 +24,7 @@ describe('CustomersPageComponent', () => {
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: Router, useValue: mockRouter },
       ],
-      imports: [
-        BrowserModule,
-        AppRoutingModule,
-        HttpClientModule,
-        MatProgressSpinnerModule,
-        ReactiveFormsModule,
-      ],
+      imports: [AppModule],
       declarations: [CustomersPageComponent],
     }).compileComponents();
 

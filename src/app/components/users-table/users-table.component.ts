@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { Customers } from '../../types/customers';
 
 @Component({
   selector: 'app-users-table',

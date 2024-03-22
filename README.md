@@ -1,32 +1,23 @@
-# Projet
-- Angualr 17 sans stand alone components
-- Minimalistic State Management using BehaviorSubjet (caching)
-- Test Unitaires
+# Projet Clients/Factures
 
-# GestionClients
+## Auteur
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.3.
+- MUSARDO Léo-Paul
+- Mars 2024
 
-## Development server
+## Implémentation
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **Angular 17** sans standalone components
+- **Barre de recherche** réactive
+- **State Management** minimaliste avec BehaviorSubjet pour le **caching**
+- Gestion **Loading** avec spinner
+- Composants **Angular Material**
+- **Test Unitaires**
+- **Test Cypress** e2e
+- **Pipe** pour afficher les nombre avec locale fr-FR
 
-## Code scaffolding
+## Commandes utiles
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- `npm start` ou `ng serve`: demarre le serveur sur `http://localhost:4200/`
+- `npm run cy:open`: pour lancer les tests cypress e2e
+- `npm test`: pour démarrer les test unitaires
